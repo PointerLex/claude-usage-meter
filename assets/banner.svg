@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="300" viewBox="0 0 960 300">
+<defs>
+<linearGradient id="title" x1="0" x2="1"><stop offset="0" stop-color="#00f0ff"/><stop offset="1" stop-color="#ff00e6"/></linearGradient>
+<pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#1a1a35" stroke-width="1"/></pattern>
+<pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#000" opacity=".25"/></pattern>
+<filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="960" height="300" fill="#0b0b1a"/>
+<rect width="960" height="300" fill="url(#grid)"/>
+<ellipse cx="168" cy="160" rx="130" ry="95" fill="#ff00e6" opacity=".12"/>
+<g transform="translate(70,90)" filter="url(#glow)">
+  <rect x="28" y="0" width="140" height="84" fill="#d97757"/>
+  <rect x="0" y="28" width="28" height="28" fill="#d97757"/>
+  <rect x="168" y="28" width="28" height="28" fill="#d97757"/>
+  <rect x="42" y="84" width="14" height="28" fill="#d97757"/>
+  <rect x="70" y="84" width="14" height="28" fill="#d97757"/>
+  <rect x="112" y="84" width="14" height="28" fill="#d97757"/>
+  <rect x="140" y="84" width="14" height="28" fill="#d97757"/>
+  <rect x="42" y="18" width="112" height="22" fill="#0b0b1a"/>
+  <rect x="42" y="18" width="112" height="22" fill="url(#title)" opacity=".85"/>
+  <rect x="48" y="22" width="40" height="4" fill="#fff" opacity=".7"/>
+</g>
+<text x="320" y="105" font-family="Consolas, Menlo, monospace" font-size="54" font-weight="bold" fill="url(#title)" filter="url(#glow)">usage-meter</text>
+<text x="322" y="140" font-family="Consolas, Menlo, monospace" font-size="17" fill="#8a8ab0">5h &amp; weekly limits · tokens across sessions · Claude Code mod</text>
+<rect x="320" y="170" width="610" height="80" rx="6" fill="#10102a" stroke="#ff00e6" stroke-opacity=".6"/>
+<g font-family="Consolas, Menlo, monospace" font-size="17" font-weight="bold">
+<text x="338" y="200" fill="#00f0ff">5H</text>
+<text x="338" y="233" fill="#00f0ff">WEEK</text>
+<text x="600" y="200" fill="#00f0ff">77%</text>
+<text x="600" y="233" fill="#00f0ff">60%</text>
+<text x="650" y="200" fill="#6a6a90" font-weight="normal">resets 1h30m</text>
+<text x="650" y="233" fill="#6a6a90" font-weight="normal">resets 3d4h</text>
+<text x="800" y="200" fill="#00f0ff">↑12.3k</text>
+<text x="800" y="233" fill="#ff00e6">↓678</text>
+<text x="872" y="216" fill="#6a6a90" font-weight="normal">TOK</text>
+</g>
+<linearGradient id="b1" gradientUnits="userSpaceOnUse" x1="396" x2="588"><stop offset="0" stop-color="#00f0ff"/><stop offset="1" stop-color="#ff00e6"/></linearGradient>
+<rect x="396" y="186" width="12" height="18" fill="url(#b1)"/>
+<rect x="412" y="186" width="12" height="18" fill="url(#b1)"/>
+<rect x="428" y="186" width="12" height="18" fill="url(#b1)"/>
+<rect x="444" y="186" width="12" height="18" fill="url(#b1)"/>
+<rect x="460" y="186" width="12" height="18" fill="url(#b1)"/>
+<rect x="476" y="186" width="12" height="18" fill="url(#b1)"/>
+<rect x="492" y="186" width="12" height="18" fill="url(#b1)"/>
+<rect x="508" y="186" width="12" height="18" fill="url(#b1)"/>
+<rect x="524" y="186" width="12" height="18" fill="url(#b1)"/>
+<rect x="540" y="186" width="12" height="18" fill="#2b2b45"/>
+<rect x="556" y="186" width="12" height="18" fill="#2b2b45"/>
+<rect x="572" y="186" width="12" height="18" fill="#2b2b45"/>
+<linearGradient id="b2" gradientUnits="userSpaceOnUse" x1="396" x2="588"><stop offset="0" stop-color="#00f0ff"/><stop offset="1" stop-color="#ff00e6"/></linearGradient>
+<rect x="396" y="219" width="12" height="18" fill="url(#b2)"/>
+<rect x="412" y="219" width="12" height="18" fill="url(#b2)"/>
+<rect x="428" y="219" width="12" height="18" fill="url(#b2)"/>
+<rect x="444" y="219" width="12" height="18" fill="url(#b2)"/>
+<rect x="460" y="219" width="12" height="18" fill="url(#b2)"/>
+<rect x="476" y="219" width="12" height="18" fill="url(#b2)"/>
+<rect x="492" y="219" width="12" height="18" fill="url(#b2)"/>
+<rect x="508" y="219" width="12" height="18" fill="#2b2b45"/>
+<rect x="524" y="219" width="12" height="18" fill="#2b2b45"/>
+<rect x="540" y="219" width="12" height="18" fill="#2b2b45"/>
+<rect x="556" y="219" width="12" height="18" fill="#2b2b45"/>
+<rect x="572" y="219" width="12" height="18" fill="#2b2b45"/>
+<rect width="960" height="300" fill="url(#scan)"/>
+</svg>
