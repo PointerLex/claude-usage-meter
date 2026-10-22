@@ -16,9 +16,8 @@
   <rect x="70" y="84" width="14" height="28" fill="#d97757"/>
   <rect x="112" y="84" width="14" height="28" fill="#d97757"/>
   <rect x="140" y="84" width="14" height="28" fill="#d97757"/>
-  <rect x="42" y="18" width="112" height="22" fill="#0b0b1a"/>
-  <rect x="42" y="18" width="112" height="22" fill="url(#title)" opacity=".85"/>
-  <rect x="48" y="22" width="40" height="4" fill="#fff" opacity=".7"/>
+  <rect x="56" y="14" width="14" height="28" fill="#0b0b1a"/>
+  <rect x="126" y="14" width="14" height="28" fill="#0b0b1a"/>
 </g>
 <text x="320" y="105" font-family="Consolas, Menlo, monospace" font-size="54" font-weight="bold" fill="url(#title)" filter="url(#glow)">usage-meter</text>
 <text x="322" y="140" font-family="Consolas, Menlo, monospace" font-size="17" fill="#8a8ab0">5h &amp; weekly limits · tokens across sessions · Claude Code mod</text>

@@ -1,6 +1,6 @@
 # usage-meter
 
-![usage-meter: Clawd in neon visor next to the usage band](assets/banner.svg)
+![usage-meter: Clawd next to the usage band](assets/banner.svg)
 
 A Claude Code mod that draws a cyberpunk-style band above the prompt: how much is left of your 5-hour and weekly usage windows (with a cyan-to-magenta gradient bar and the time until each resets), plus the tokens you have spent, accumulated across sessions.
 
