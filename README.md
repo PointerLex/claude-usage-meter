@@ -23,6 +23,8 @@ A black side pane (`/usage-meter` opens it; it docks by itself on terminals 144 
 - **Pull requests**: open PRs of the repository, through the [GitHub CLI](https://cli.github.com) (`gh`).
 - **Containers**: every Docker container with its state (running, exited…).
 
+![Subagent tasks and agents, the max-effort rainbow flowing](assets/agents.gif)
+
 Git, PRs and containers refresh every 30 seconds for the folder the session runs in; any tool that is missing is skipped with a note. To keep some containers out of the pane, set the **Hide containers** option in `/config` to comma-separated parts of their names (for example `prod,client-a`).
 
 ## Install
