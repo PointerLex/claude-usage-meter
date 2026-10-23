@@ -129,6 +129,9 @@ async function syncAgents($: EngineInterface) {
 }
 
 // Advances the max-effort rainbow only while such an agent is working, so an idle pane does not redraw.
+type Breakdown = Awaited<ReturnType<EngineInterface['session']['usage']>>['context']['breakdown']
+let bd: { key: string; b: Breakdown } | undefined
+
 async function shimmer($: EngineInterface) {
   const as = await read($, agents)
   if (as.some(a => a.effort === 'max' && LIVE.includes(a.status))) await update($, tick, t => t + 1)
@@ -380,7 +383,7 @@ export const register: Register = (on, options) => {
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const { Box, Text } = $.ui.resolve(e)
     const Raster = e.surface === 'terminal' ? $.ui.resolve(e).Raster : undefined
-    await read($, ctx) // redraw whenever the window moves
+    const c = await read($, ctx) // redraw whenever the window moves
     const lims = (await read($, limits)).filter(l => LABELS[l.kind])
     const tok = await read($, tokens)
     const ch = await read($, ctxHist)
@@ -389,7 +392,10 @@ export const register: Register = (on, options) => {
     const ags = await read($, agents)
     const t = await read($, tick)
     const now = await $.clock.now()
-    const b = (await $.session.usage({ breakdown: 'summary' })).context.breakdown
+    // the breakdown is the slow part of a redraw: ask again only when the context moved, not on every shimmer tick
+    const ck = `${c.tokens}/${c.window}`
+    if (bd?.key !== ck) bd = { key: ck, b: (await $.session.usage({ breakdown: 'summary' })).context.breakdown }
+    const b = bd.b
     const w = Math.max(10, e.props.bodyColumns - 2)
 
     return (
