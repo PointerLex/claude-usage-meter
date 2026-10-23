@@ -71,7 +71,7 @@ async function sh($: EngineInterface, argv: string[]) {
   }
 }
 
-async function refresh($: EngineInterface) {
+async function refresh($: EngineInterface, hide: string[]) {
   const [status, log, prs, docker] = await Promise.all([
     sh($, ['git', 'status', '--porcelain=v2', '--branch']),
     sh($, ['git', 'log', '--graph', '--all', '-n', '20', '--decorate=short', `--format=${SEP}%h${SEP}%d${SEP}%s`]),
@@ -88,7 +88,7 @@ async function refresh($: EngineInterface) {
     ...(status === undefined ? { ahead: 0, behind: 0, changes: 0 } : parseStatus(status)),
     graph: log === undefined ? [] : parseGraph(log),
     prs: prList,
-    containers: docker === undefined ? undefined : parseDocker(docker),
+    containers: docker === undefined ? undefined : parseDocker(docker).filter(c => !hide.some(h => c.name.includes(h))),
     dockerNote: docker === undefined ? 'Docker not reachable.' : undefined,
   }
   await update($, dev, () => next)
@@ -156,15 +156,19 @@ export const until = (iso: string | undefined, now: number) => {
     : `${Math.floor(min / 60)}h${min % 60}m`
 }
 
-export const register: Register = on => {
+export const register: Register = (on, options) => {
+  const hide = String(options.hideContainers ?? '')
+    .split(',')
+    .map(x => x.trim())
+    .filter(Boolean)
   on('session.start', async ($, e, next) => {
     const saved = (await $.store.get('tokens')) as Tokens | undefined
     if (saved) await update($, tokens, () => saved)
     await $.command.register({ name: 'usage-meter', description: 'Open the usage and context pane' })
     void $.ui.open({ id: PANE, title: 'Usage' })
-    void refresh($)
+    void refresh($, hide)
     // ponytail: polls every 30s; a git/docker event stream if that ever feels stale
-    $.clock.every(30_000, () => void refresh($))
+    $.clock.every(30_000, () => void refresh($, hide))
     return next(e)
   })
 

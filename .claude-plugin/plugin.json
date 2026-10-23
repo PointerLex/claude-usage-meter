@@ -1,1 +1,15 @@
-{ "name": "usage-meter", "version": "0.3.0", "description": "Cyberpunk usage band and pane: 5h and weekly limits, tokens, context breakdown and history charts, git graph, PRs and containers", "types": "./types/index.d.ts", "license": "MIT" }
+{
+  "name": "usage-meter",
+  "version": "0.3.0",
+  "description": "Cyberpunk usage band and pane: 5h and weekly limits, tokens, context breakdown and history charts, git graph, PRs and containers",
+  "types": "./types/index.d.ts",
+  "license": "MIT",
+  "userConfig": {
+    "hideContainers": {
+      "type": "string",
+      "title": "Hide containers",
+      "description": "Comma-separated parts of container names to leave out of the pane",
+      "default": ""
+    }
+  }
+}
