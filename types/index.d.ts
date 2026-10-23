@@ -39,6 +39,7 @@ declare module 'claude-code' {
       turnHist: number[]
       dev: Dev
       agents: Agent[]
+      tick: number
     }
   }
 }

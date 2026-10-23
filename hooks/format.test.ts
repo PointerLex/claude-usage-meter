@@ -50,6 +50,11 @@ test('subagent tool hint and elapsed time', () => {
 test('effort and model styles', () => {
   expect(effortStyle('ab', 'low').map(c => c.color)).toEqual(['#5c5c7a', '#5c5c7a'])
   expect(effortStyle('abc', 'xhigh').map(c => c.color)).toEqual(['#00f0ff', lerp('#00f0ff', '#ff00e6', 1, 3), '#ff00e6'])
-  expect(new Set(effortStyle('abcdefg', 'max').map(c => c.color)).size).toBe(7)
+  // ticks 22-23: glint well off the text, so plain rainbow; it flows one letter per tick
+  const at = (t: number) => effortStyle('abcdefg', 'max', t).map(c => c.color)
+  expect(new Set(at(22)).size).toBe(7)
+  expect(at(23).slice(0, 6)).toEqual(at(22).slice(1))
+  // tick 2: glint on the third letter, its neighbours tinted
+  expect(at(2).slice(1, 4)).toEqual(['#ffd6f5', '#ffffff', '#ffd6f5'])
   expect([modelColor('claude-opus-5-5'), modelColor('haiku'), modelColor(undefined)]).toEqual(['#ff00e6', '#05ffa1', '#fffb96'])
 })

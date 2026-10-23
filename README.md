@@ -18,7 +18,7 @@ A black side pane (`/usage-meter` opens it; it docks by itself on terminals 144 
 - **Charts**: context % used per reading, and output tokens per turn, as gradient column charts.
 - **Limits and tokens**: the 5-hour and weekly windows, and tokens spent across sessions.
 - **Tasks**: a to-do list of what was handed to subagents, checked off as each one finishes; agents started by a Workflow (orchestrator) show their run id and place in it.
-- **Agents**: each subagent's type, task, tools used, elapsed time, status and last tool call, plus the model and effort its requests actually use, styled by level (low is dim, xhigh a cyan-to-magenta gradient, max a rainbow) and the model colored by family.
+- **Agents**: each subagent's type, task, tools used, elapsed time, status and last tool call, plus the model and effort its requests actually use, styled by level (low is dim, xhigh a cyan-to-magenta gradient, max a flowing rainbow with a glint while the agent works) and the model colored by family.
 - **Git**: current branch, ahead/behind, changed files, and a colored graph of the last 20 commits on all branches.
 - **Pull requests**: open PRs of the repository, through the [GitHub CLI](https://cli.github.com) (`gh`).
 - **Containers**: every Docker container with its state (running, exited…).

@@ -8,6 +8,7 @@ const tokens = atom({ plugin: 'usage-meter', key: 'tokens' } as const, { in: 0, 
 const ctx = atom({ plugin: 'usage-meter', key: 'ctx' } as const, { window: 0 } as Ctx)
 const ctxHist = atom({ plugin: 'usage-meter', key: 'ctxHist' } as const, [] as number[])
 const turnHist = atom({ plugin: 'usage-meter', key: 'turnHist' } as const, [] as number[])
+const tick = atom({ plugin: 'usage-meter', key: 'tick' } as const, 0)
 const agents = atom({ plugin: 'usage-meter', key: 'agents' } as const, [] as Agent[])
 const dev = atom({ plugin: 'usage-meter', key: 'dev' } as const, { ahead: 0, behind: 0, changes: 0, graph: [] } as Dev)
 
@@ -91,7 +92,7 @@ export const modelColor = (m = '') =>
 const RAINBOW = ['#ff2a6d', '#ff8a00', '#fffb96', '#05ffa1', '#00f0ff', '#b967ff', '#ff00e6']
 
 // Per-letter colours for an effort level, quiet at low up to a rainbow at max (like Ultracode's).
-export const effortStyle = (text: string, effort = '') => {
+export const effortStyle = (text: string, effort = '', t = 0) => {
   const n = text.length
   const pick: Record<string, (i: number) => string> = {
     low: () => '#5c5c7a',
@@ -99,8 +100,11 @@ export const effortStyle = (text: string, effort = '') => {
     high: () => CYAN,
     xhigh: i => lerp(CYAN, MAGENTA, i, n),
   }
-  // ponytail: static rainbow; animate it with a clock tick if it should shimmer
-  const f = pick[effort] ?? (effort === 'max' ? (i: number) => RAINBOW[i % RAINBOW.length] ?? CYAN : () => '#fffb96')
+  // max: the rainbow flows one letter per tick, and a white glint sweeps across with a gap after it
+  const glint = t % (n + 6)
+  const rainbow = (i: number) =>
+    i === glint ? '#ffffff' : Math.abs(i - glint) === 1 ? '#ffd6f5' : (RAINBOW[(i + t) % RAINBOW.length] ?? CYAN)
+  const f = pick[effort] ?? (effort === 'max' ? rainbow : () => '#fffb96')
   return [...text].map((ch, i) => ({ ch, color: f(i) }))
 }
 
@@ -122,6 +126,12 @@ async function syncAgents($: EngineInterface) {
       return { ...a, status, endedAt: LIVE.includes(status) ? undefined : now }
     }),
   )
+}
+
+// Advances the max-effort rainbow only while such an agent is working, so an idle pane does not redraw.
+async function shimmer($: EngineInterface) {
+  const as = await read($, agents)
+  if (as.some(a => a.effort === 'max' && LIVE.includes(a.status))) await update($, tick, t => t + 1)
 }
 
 async function refresh($: EngineInterface, hide: string[]) {
@@ -223,6 +233,7 @@ export const register: Register = (on, options) => {
     // ponytail: polls every 30s; a git/docker event stream if that ever feels stale
     $.clock.every(30_000, () => void refresh($, hide))
     $.clock.every(2_000, () => void syncAgents($))
+    $.clock.every(120, () => void shimmer($))
     return next(e)
   })
 
@@ -376,6 +387,7 @@ export const register: Register = (on, options) => {
     const th = await read($, turnHist)
     const d = await read($, dev)
     const ags = await read($, agents)
+    const t = await read($, tick)
     const now = await $.clock.now()
     const b = (await $.session.usage({ breakdown: 'summary' })).context.breakdown
     const w = Math.max(10, e.props.bodyColumns - 2)
@@ -525,7 +537,7 @@ export const register: Register = (on, options) => {
               </Text>
               {a.effort ? <Text dimColor> · </Text> : null}
               {a.effort
-                ? effortStyle(`effort ${a.effort}`, a.effort).map((c, i) => (
+                ? effortStyle(`effort ${a.effort}`, a.effort, LIVE.includes(a.status) ? t : 0).map((c, i) => (
                     <Text key={`ef${a.id}${i}`} color={c.color} weight={a.effort === 'max' ? 'bold' : undefined}>
                       {c.ch}
                     </Text>
