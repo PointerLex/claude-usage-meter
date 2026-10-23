@@ -1,1 +1,1 @@
-{ "name": "usage-meter", "version": "0.2.0", "description": "Cyberpunk band with 5h and weekly limits left, plus tokens spent across sessions", "types": "./types/index.d.ts", "license": "MIT" }
+{ "name": "usage-meter", "version": "0.3.0", "description": "Cyberpunk usage band and pane: 5h and weekly limits, tokens, context breakdown and history charts, git graph, PRs and containers", "types": "./types/index.d.ts", "license": "MIT" }

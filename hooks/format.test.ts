@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { k, lerp, until } from './register'
+import { b64, cells, columnChart, k, lerp, parseDocker, parseGraph, parseStatus, until } from './register'
 
 test('gradient ends, token units and reset countdown', () => {
   expect(lerp('#00f0ff', '#ff00e6', 0, 12)).toBe('#00f0ff')
@@ -8,4 +8,34 @@ test('gradient ends, token units and reset countdown', () => {
   const now = Date.parse('2026-10-22T12:00:00Z')
   expect(until('2026-10-22T13:30:00Z', now)).toBe('1h30m')
   expect(until('2026-10-25T16:00:00Z', now)).toBe('3d4h')
+})
+
+test('cells light the right share of the bar', () => {
+  const c = cells(50, 8)
+  expect(c.filter(x => x.ch === '█').length).toBe(4)
+  expect(c[0]?.color).toBe('#00f0ff')
+  expect(cells(150, 4).every(x => x.ch === '█')).toBe(true)
+})
+
+test('base64 and the column chart', () => {
+  expect(b64(Uint8Array.of(1, 2, 3, 4))).toBe('AQIDBA==')
+  // one full column, 1x1: a full block, cyan, on black
+  expect(columnChart([5], 1, 1)).toBe(b64(new Uint8Array(Uint32Array.of(0x2588, 0x00f0ff, 0).buffer)))
+  // empty history slots on the left are spaces
+  expect(columnChart([5], 2, 1)).toBe(b64(new Uint8Array(Uint32Array.of(0x20, 0x00f0ff, 0, 0x2588, 0x00f0ff, 0).buffer)))
+})
+
+test('git status, graph and docker parsing', () => {
+  expect(parseStatus('# branch.oid abc\n# branch.head main\n# branch.ab +2 -1\n1 .M N... x\n? new.txt\n')).toEqual({
+    branch: 'main',
+    ahead: 2,
+    behind: 1,
+    changes: 2,
+  })
+  const g = parseGraph('* \x1fabc123\x1f (HEAD -> main)\x1ffix bar\n|\\n')
+  expect(g[0]).toEqual({ graph: '* ', hash: 'abc123', refs: '(HEAD -> main)', subject: 'fix bar' })
+  expect(g[1]?.hash).toBe('')
+  expect(parseDocker('{"Names":"db","Image":"postgres","State":"running","Status":"Up 2h"}\n')).toEqual([
+    { name: 'db', image: 'postgres', state: 'running', status: 'Up 2h' },
+  ])
 })
