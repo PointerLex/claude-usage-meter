@@ -4,9 +4,7 @@
 
 A Claude Code mod that draws a cyberpunk-style band above the prompt: how much is left of your 5-hour and weekly usage windows (with a cyan-to-magenta gradient bar and the time until each resets), plus the tokens you have spent, accumulated across sessions.
 
-```
-▓▒░ USAGE ░▒▓ │ 5H ████████░░░░ 77% left resets 1h30m │ WEEK ███████░░░░░ 60% left │ CTX ███░░░░░ 38% used │ ↑12.3k ↓678 TOK
-```
+![The usage band above the prompt](assets/stats.png)
 
 The usage windows appear after the first response of a session, and only on a Claude subscription (Pro/Max).
 
