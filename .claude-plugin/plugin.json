@@ -1,7 +1,7 @@
 {
   "name": "usage-meter",
-  "version": "0.3.0",
-  "description": "Cyberpunk usage band and pane: 5h and weekly limits, tokens, context breakdown and history charts, git graph, PRs and containers",
+  "version": "0.4.0",
+  "description": "Cyberpunk usage band and pane: 5h and weekly limits, tokens, context breakdown and history charts, subagent tasks with model and effort, git graph, PRs and containers",
   "types": "./types/index.d.ts",
   "license": "MIT",
   "userConfig": {

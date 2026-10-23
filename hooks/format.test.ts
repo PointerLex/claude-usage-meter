@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { b64, cells, columnChart, k, lerp, parseDocker, parseGraph, parseStatus, until } from './register'
+import { b64, cells, columnChart, effortStyle, elapsed, hint, modelColor, k, lerp, parseDocker, parseGraph, parseStatus, until } from './register'
 
 test('gradient ends, token units and reset countdown', () => {
   expect(lerp('#00f0ff', '#ff00e6', 0, 12)).toBe('#00f0ff')
@@ -38,4 +38,18 @@ test('git status, graph and docker parsing', () => {
   expect(parseDocker('{"Names":"db","Image":"postgres","State":"running","Status":"Up 2h"}\n')).toEqual([
     { name: 'db', image: 'postgres', state: 'running', status: 'Up 2h' },
   ])
+})
+
+test('subagent tool hint and elapsed time', () => {
+  expect(hint('Bash', { command: 'npm test\nmore' })).toBe('Bash: npm test')
+  expect(hint('Read', { file_path: 'a.ts' })).toBe('Read: a.ts')
+  expect(hint('TodoWrite', {})).toBe('TodoWrite')
+  expect([elapsed(5_000), elapsed(125_000)]).toEqual(['5s', '2m05s'])
+})
+
+test('effort and model styles', () => {
+  expect(effortStyle('ab', 'low').map(c => c.color)).toEqual(['#5c5c7a', '#5c5c7a'])
+  expect(effortStyle('abc', 'xhigh').map(c => c.color)).toEqual(['#00f0ff', lerp('#00f0ff', '#ff00e6', 1, 3), '#ff00e6'])
+  expect(new Set(effortStyle('abcdefg', 'max').map(c => c.color)).size).toBe(7)
+  expect([modelColor('claude-opus-5-5'), modelColor('haiku'), modelColor(undefined)]).toEqual(['#ff00e6', '#05ffa1', '#fffb96'])
 })

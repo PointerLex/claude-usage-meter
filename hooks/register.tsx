@@ -1,13 +1,14 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { Container, Ctx, Dev, GraphLine, Limit, Pr, Tokens } from '../types'
+import type { Agent, Container, Ctx, Dev, GraphLine, Limit, Pr, Tokens } from '../types'
 
 const limits = atom({ plugin: 'usage-meter', key: 'limits' } as const, [] as Limit[])
 const tokens = atom({ plugin: 'usage-meter', key: 'tokens' } as const, { in: 0, out: 0 } as Tokens)
 const ctx = atom({ plugin: 'usage-meter', key: 'ctx' } as const, { window: 0 } as Ctx)
 const ctxHist = atom({ plugin: 'usage-meter', key: 'ctxHist' } as const, [] as number[])
 const turnHist = atom({ plugin: 'usage-meter', key: 'turnHist' } as const, [] as number[])
+const agents = atom({ plugin: 'usage-meter', key: 'agents' } as const, [] as Agent[])
 const dev = atom({ plugin: 'usage-meter', key: 'dev' } as const, { ahead: 0, behind: 0, changes: 0, graph: [] } as Dev)
 
 const PANE = 'usage-meter'
@@ -69,6 +70,58 @@ async function sh($: EngineInterface, argv: string[]) {
   } catch {
     return undefined
   }
+}
+
+const LIVE = ['pending', 'running', 'waiting', 'idle']
+const AGENT_COLOR: Record<string, string> = { running: CYAN, pending: '#fffb96', waiting: '#fffb96', idle: '#fffb96', completed: GREEN }
+const CHECK: Record<string, string> = { running: '▸', pending: ' ', waiting: ' ', idle: ' ', completed: '✓' }
+
+// One short line for what a tool call is about: its command, path, pattern or description.
+export const hint = (tool: string, input: Record<string, unknown>) => {
+  const v = ['command', 'file_path', 'pattern', 'url', 'query', 'description', 'path']
+    .map(f => input[f])
+    .find(x => typeof x === 'string' && x)
+  return v ? `${tool}: ${String(v).split('\n')[0]}` : tool
+}
+
+// Model family colour: the bigger the model, the hotter.
+export const modelColor = (m = '') =>
+  /opus/.test(m) ? MAGENTA : /fable/.test(m) ? '#ffb000' : /sonnet/.test(m) ? CYAN : /haiku/.test(m) ? GREEN : '#fffb96'
+
+const RAINBOW = ['#ff2a6d', '#ff8a00', '#fffb96', '#05ffa1', '#00f0ff', '#b967ff', '#ff00e6']
+
+// Per-letter colours for an effort level, quiet at low up to a rainbow at max (like Ultracode's).
+export const effortStyle = (text: string, effort = '') => {
+  const n = text.length
+  const pick: Record<string, (i: number) => string> = {
+    low: () => '#5c5c7a',
+    medium: () => '#b8b8d0',
+    high: () => CYAN,
+    xhigh: i => lerp(CYAN, MAGENTA, i, n),
+  }
+  // ponytail: static rainbow; animate it with a clock tick if it should shimmer
+  const f = pick[effort] ?? (effort === 'max' ? (i: number) => RAINBOW[i % RAINBOW.length] ?? CYAN : () => '#fffb96')
+  return [...text].map((ch, i) => ({ ch, color: f(i) }))
+}
+
+export const elapsed = (ms: number) => {
+  const s = Math.max(0, Math.round(ms / 1000))
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m${String(s % 60).padStart(2, '0')}s`
+}
+
+// Status from the engine's agent list; an agent it no longer lists has finished.
+async function syncAgents($: EngineInterface) {
+  const mine = await read($, agents)
+  if (!mine.some(a => LIVE.includes(a.status))) return
+  const live = await $.agent.list()
+  const now = await $.clock.now()
+  await update($, agents, as =>
+    as.map(a => {
+      if (!LIVE.includes(a.status) || a.run) return a
+      const status = live.find(l => l.id === a.id)?.status ?? 'completed'
+      return { ...a, status, endedAt: LIVE.includes(status) ? undefined : now }
+    }),
+  )
 }
 
 async function refresh($: EngineInterface, hide: string[]) {
@@ -169,12 +222,56 @@ export const register: Register = (on, options) => {
     void refresh($, hide)
     // ponytail: polls every 30s; a git/docker event stream if that ever feels stale
     $.clock.every(30_000, () => void refresh($, hide))
+    $.clock.every(2_000, () => void syncAgents($))
     return next(e)
   })
 
   on('command.run', { command: 'usage-meter' }, async $ => {
     await $.ui.open({ id: PANE, title: 'Usage' })
     return { text: 'Usage pane opened.' }
+  })
+
+  on('agent.spawn', async ($, e, next) => {
+    const r = await next(e)
+    const id = r.agentId
+    if (id) {
+      const now = await $.clock.now()
+      const run = e.workflow ? `${e.workflow.runId.slice(0, 9)} #${e.workflow.agentIndex}` : undefined
+      const a: Agent = {
+        id,
+        type: e.subagentType,
+        description: e.description,
+        status: 'running',
+        tools: 0,
+        out: 0,
+        model: r.model,
+        run,
+        startedAt: now,
+      }
+      await update($, agents, as => [...as, a].slice(-12))
+    }
+    return r
+  })
+
+  on('tool.call', async ($, e, next) => {
+    const id = e.agentId
+    if (id) {
+      const last = hint(e.tool, e as unknown as Record<string, unknown>)
+      await update($, agents, as => as.map(a => (a.id === id ? { ...a, tools: a.tools + 1, last } : a)))
+    }
+    return next(e)
+  })
+
+  // The effort a subagent's requests ask for; the model can change per step too.
+  on('turn.step', async function* ($, e, next) {
+    const id = e.agentId
+    if (id) {
+      const effort = e.effort === undefined ? undefined : String(e.effort)
+      const mine = (await read($, agents)).find(a => a.id === id)
+      if (mine && (mine.effort !== effort || mine.model !== e.model))
+        await update($, agents, as => as.map(a => (a.id === id ? { ...a, effort, model: e.model } : a)))
+    }
+    return yield* next(e)
   })
 
   on('session.measure', async ($, e, next) => {
@@ -187,6 +284,22 @@ export const register: Register = (on, options) => {
 
   on('turn.complete', async ($, e, next) => {
     const r = await next(e)
+    const id = e.agentId
+    if (id) {
+      const now = await $.clock.now()
+      const out = r.usage?.output_tokens ?? 0
+      await update($, agents, as =>
+        as.map(a =>
+          a.id !== id
+            ? a
+            : {
+                ...a,
+                out: a.out + out,
+                ...(a.run ? { status: e.isAborted ? 'killed' : 'completed', endedAt: now } : {}),
+              },
+        ),
+      )
+    }
     if (r.usage) {
       const u = r.usage
       // ponytail: read-add-write; two sessions finishing at the same instant can lose one turn
@@ -262,6 +375,7 @@ export const register: Register = (on, options) => {
     const ch = await read($, ctxHist)
     const th = await read($, turnHist)
     const d = await read($, dev)
+    const ags = await read($, agents)
     const now = await $.clock.now()
     const b = (await $.session.usage({ breakdown: 'summary' })).context.breakdown
     const w = Math.max(10, e.props.bodyColumns - 2)
@@ -369,6 +483,61 @@ export const register: Register = (on, options) => {
             {g.refs ? <Text color={MAGENTA}> {g.refs}</Text> : null}
             {g.subject ? <Text> {g.subject}</Text> : null}
           </Text>
+        ))}
+        <Text> </Text>
+        <Text color={CYAN} weight="bold">
+          TASKS{' '}
+          <Text dimColor>
+            {ags.filter(a => a.status === 'completed').length}/{ags.length}
+          </Text>
+        </Text>
+        {ags.length === 0 ? <Text dimColor>Nothing handed to subagents yet.</Text> : null}
+        {ags.map(a => (
+          <Text key={`td${a.id}`} wrap="truncate-end">
+            <Text color={AGENT_COLOR[a.status] ?? HOT}>[{CHECK[a.status] ?? '✗'}] </Text>
+            <Text dimColor={a.status === 'completed'}>{a.description}</Text>
+            {a.run ? <Text color="#b967ff"> {a.run}</Text> : null}
+          </Text>
+        ))}
+        <Text> </Text>
+        <Text color={CYAN} weight="bold">AGENTS</Text>
+        {ags.length === 0 ? <Text dimColor>No subagents yet this session.</Text> : null}
+        {ags.map(a => (
+          <Box key={`ag${a.id}`} flexDirection="column">
+            <Box flexDirection="row" justifyContent="space-between">
+              <Text wrap="truncate-end">
+                <Text color={AGENT_COLOR[a.status] ?? HOT}>● </Text>
+                <Text color={MAGENTA}>{a.type} </Text>
+                <Text>{a.description}</Text>
+              </Text>
+              <Text dimColor>
+                {a.tools} tools · {elapsed((a.endedAt ?? now) - a.startedAt)} · {a.status}
+              </Text>
+            </Box>
+            <Text wrap="truncate-end">
+              {'  '}
+              <Text color={modelColor(a.model)} weight="bold">
+                {a.model ?? '?'}
+              </Text>
+              {a.effort ? <Text dimColor> · </Text> : null}
+              {a.effort
+                ? effortStyle(`effort ${a.effort}`, a.effort).map((c, i) => (
+                    <Text key={`ef${a.id}${i}`} color={c.color} weight={a.effort === 'max' ? 'bold' : undefined}>
+                      {c.ch}
+                    </Text>
+                  ))
+                : null}
+              <Text dimColor>
+                {' '}· ↓{k(a.out)} out{a.run ? ` · ${a.run}` : ''}
+              </Text>
+            </Text>
+            {a.last ? (
+              <Text dimColor wrap="truncate-end">
+                {'  └ '}
+                {a.last}
+              </Text>
+            ) : null}
+          </Box>
         ))}
         <Text> </Text>
         <Text color={CYAN} weight="bold">PULL REQUESTS</Text>

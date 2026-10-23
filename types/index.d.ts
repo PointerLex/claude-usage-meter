@@ -4,6 +4,20 @@ export type Ctx = { percent?: number; tokens?: number; window: number }
 export type GraphLine = { graph: string; hash: string; refs: string; subject: string }
 export type Pr = { number: number; title: string; headRefName: string; isDraft: boolean }
 export type Container = { name: string; image: string; state: string; status: string }
+export type Agent = {
+  id: string
+  type: string
+  description: string
+  status: string
+  tools: number
+  last?: string
+  model?: string
+  effort?: string
+  run?: string
+  out: number
+  startedAt: number
+  endedAt?: number
+}
 export type Dev = {
   branch?: string
   ahead: number
@@ -24,6 +38,7 @@ declare module 'claude-code' {
       ctxHist: number[]
       turnHist: number[]
       dev: Dev
+      agents: Agent[]
     }
   }
 }
