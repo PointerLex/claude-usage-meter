@@ -504,15 +504,19 @@ export const register: Register = (on, options) => {
         {ags.length === 0 ? <Text dimColor>No subagents yet this session.</Text> : null}
         {ags.map(a => (
           <Box key={`ag${a.id}`} flexDirection="column">
-            <Box flexDirection="row" justifyContent="space-between">
-              <Text wrap="truncate-end">
-                <Text color={AGENT_COLOR[a.status] ?? HOT}>● </Text>
-                <Text color={MAGENTA}>{a.type} </Text>
-                <Text>{a.description}</Text>
-              </Text>
-              <Text dimColor>
-                {a.tools} tools · {elapsed((a.endedAt ?? now) - a.startedAt)} · {a.status}
-              </Text>
+            <Box flexDirection="row" justifyContent="space-between" columnGap={1}>
+              <Box flexShrink={1}>
+                <Text wrap="truncate-end">
+                  <Text color={AGENT_COLOR[a.status] ?? HOT}>● </Text>
+                  <Text color={MAGENTA}>{a.type} </Text>
+                  <Text>{a.description}</Text>
+                </Text>
+              </Box>
+              <Box flexShrink={0}>
+                <Text dimColor>
+                  {a.tools} tools · {elapsed((a.endedAt ?? now) - a.startedAt)} · {a.status}
+                </Text>
+              </Box>
             </Box>
             <Text wrap="truncate-end">
               {'  '}
