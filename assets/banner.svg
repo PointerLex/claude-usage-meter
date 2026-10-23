@@ -7,7 +7,6 @@
 </defs>
 <rect width="960" height="300" fill="#0b0b1a"/>
 <rect width="960" height="300" fill="url(#grid)"/>
-<ellipse cx="168" cy="160" rx="130" ry="95" fill="#ff00e6" opacity=".12"/>
 <g transform="translate(70,90)" filter="url(#glow)">
   <rect x="28" y="0" width="140" height="84" fill="#d97757"/>
   <rect x="0" y="28" width="28" height="28" fill="#d97757"/>
